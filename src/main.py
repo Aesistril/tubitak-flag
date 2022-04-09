@@ -1,3 +1,5 @@
+# TODO: Write some comments
+
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 from configparser import ConfigParser
 class os: from os.path import dirname
@@ -15,7 +17,7 @@ except:
 
 userOS = platform.system()
 
-# Complete this
+# TODO: Complete this
 if srcrun == True: dirs.read(os.dirname(__file__)+"/config/dirs/src.conf")
 elif userOS == "Windows": dirs.read("C:/ProgramFiles/tubitak-flag")
 elif userOS == "Linux": dirs.read("/etc/tubitak-flag/dirs/unix.conf")
