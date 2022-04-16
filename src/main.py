@@ -53,15 +53,19 @@ class MainWin(QtWidgets.QMainWindow):
         
     # Change language
     def changeLang(self):
-        global lang
-        lang = ConfigParser()
-        lang.read(self.select_lang.comboBox.currentText() + ".conf") # Read the comboBox and read the config file of language user has selected
+        self.lang = ConfigParser()
+        # Read the comboBox and read the config file of language user has selected
+        test = dirs["resources"]["lang"] + "/" + self.select_lang.comboBox.currentText() + ".conf"
+        self.lang.read(dirs["resources"]["lang"].replace("-filepath-", os.dirname(__file__)) + "/" + self.select_lang.comboBox.currentText() + ".conf")
         self.draw_select_game()
 
     def draw_select_game(self):
         # Draw the main menu
         self.select_game = select_game()
         self.setCentralWidget(self.select_game)
+        self.select_game.sel_game_label.setText(self.lang["sel_game"]["sel_game_label"])
+        self.select_game.region_game.setText(self.lang["sel_game"]["region_game"])
+        self.select_game.country_game.setText(self.lang["sel_game"]["country_game"])
         self.setFixedSize(639, 450)
 
 # Start the application
