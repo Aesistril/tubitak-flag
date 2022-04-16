@@ -57,6 +57,8 @@ class MainWin(QtWidgets.QMainWindow):
         # Read the comboBox and read the config file of language user has selected
         test = dirs["resources"]["lang"] + "/" + self.select_lang.comboBox.currentText() + ".conf"
         self.lang.read(dirs["resources"]["lang"].replace("-filepath-", os.dirname(__file__)) + "/" + self.select_lang.comboBox.currentText() + ".conf")
+        del self.select_lang
+        self.setWindowTitle(lang["misc"]["window_title"]) # Change the window title
         self.draw_select_game()
 
     def draw_select_game(self):
@@ -66,7 +68,16 @@ class MainWin(QtWidgets.QMainWindow):
         self.select_game.sel_game_label.setText(self.lang["sel_game"]["sel_game_label"])
         self.select_game.region_game.setText(self.lang["sel_game"]["region_game"])
         self.select_game.country_game.setText(self.lang["sel_game"]["country_game"])
-        self.setFixedSize(639, 450)
+        self.select_game.region_game.clicked.connect(self.region_game)
+        self.select_game.country_game.clicked.connect(self.country_game)
+        self.setFixedSize(640, 450)
+    
+    def country_game(self):
+        pass
+
+    def region_game(self):
+        pass
+        
 
 # Start the application
 if __name__ == '__main__':
