@@ -1,9 +1,8 @@
-# TODO: Write some comments
-
-from PyQt6 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic, QtSvg
 from configparser import ConfigParser
+class random: from random import randint, choice
 class os: 
-    from os.path import dirname
+    from os.path import dirname, splitext
     from os import listdir
 class platform: from platform import system
 
@@ -31,6 +30,17 @@ class select_lang(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
         uic.loadUi(dirs["resources"]["qt6-ui"].replace("-filepath-", os.dirname(__file__))+'/select_lang.ui', self)
+class question_widget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self, parent=parent)
+        uic.loadUi(dirs["resources"]["qt6-ui"].replace("-filepath-", os.dirname(__file__))+'/question.ui', self)
+
+class choice_widget(QtWidgets.QWidget):
+    def __init__(self, parent=None, text="choice"):
+        QtWidgets.QWidget.__init__(self, parent=parent)
+        uic.loadUi(dirs["resources"]["qt6-ui"].replace("-filepath-", os.dirname(__file__))+'/choice.ui', self)
+        self.choice_name.setText(text)
+
 class region_game_config(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
@@ -92,12 +102,72 @@ class MainWin(QtWidgets.QMainWindow):
         self.region_game_config.start.setText(self.lang["region_game_config"]["start"])
         self.region_game_config.return_main.setText(self.lang["region_game_config"]["return_main"])
         self.setCentralWidget(self.region_game_config)
+        
 
         self.region_game_config.return_main.clicked.connect(self.draw_select_game)
         self.region_game_config.start.clicked.connect(self.run_region_game)
     
     def run_region_game(self):
-        pass
+        try: del self.region_game, self.question_widget
+        except: pass
+        self.question_widget = question_widget()
+        self.setCentralWidget(self.question_widget)
+        self.choice_count = self.region_game_config.choice_count_spin.value()
+        self.setFixedSize(640, 10+320+(60*self.choice_count))
+        self.correct_ans, self.false_ans, self.solved_q_count = 0, 0, 0
+        self.draw_question(self.question_widget, self.choice_count)
+
+    def draw_question(self, gameObj, choice): # Generate a new question and display it
+        if self.solved_q_count == self.choice_count:
+            self.draw_end_game()
+        self.correct = random.randint(1, choice) # Decide the true answer
+        # Display a random flag
+        self.flag_name = os.splitext("tr.png")[0]
+        self.flag = QtGui.QPixmap()
+        test = dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__))+self.flag_name+".png"
+        self.flag.load(dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__))+"/"+self.flag_name+".png")
+        self.flag = self.flag.scaledToWidth(640)
+        gameObj.flag_pic.setPixmap(self.flag)
+        gameObj.flag_pic.setAlignment(QtCore.Qt.AlignCenter)
+        # Delete old buttons if possible
+        try:
+            for i in range(1, choice+1):
+                locals()[str(i)+"cho"].setParent(None)
+                del locals()[str(i)+"cho"]
+        except: pass
+        # Draw and connect the choice buttons
+        y = 340
+        for i in range(1, choice+1):
+            if i == self.correct:
+                locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.flag_name)
+                locals()[str(i)+"cho"].move(0, y)
+                locals()[str(i)+"cho"].choice_name.clicked.connect(self.correct_func)
+            else:
+                random_choice = os.splitext(random.choice(os.listdir(dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__)))))[0]
+                locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=random_choice)
+                locals()[str(i)+"cho"].move(0, y)
+                locals()[str(i)+"cho"].choice_name.clicked.connect(self.false_func)
+            y += 60
+    
+    def correct_func(self):
+        self.correct_ans += 1
+        self.solved_q_count += 1
+        self.setCentralWidget(None)
+        del self.question_widget
+        self.question_widget = question_widget()
+        self.setCentralWidget(self.question_widget)
+        self.draw_question(self.question_widget, self.choice_count)
+        print("test-true")
+    
+    def false_func(self):
+        self.false_ans += 1
+        self.solved_q_count += 1
+        print("test-false")
+    
+    def draw_end_game(self):
+        print("end game")
+        
+            
 
 # Start the application
 if __name__ == '__main__':
