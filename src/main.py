@@ -23,9 +23,7 @@ elif userOS == "Linux": dirs.read("/etc/tubitak-flag/dirs/unix.conf")
 elif userOS == "Unix": dirs.read("/etc/tubitak-flag/dirs/unix.conf")
 # There will be macOS support soon (APPIMAGEs maybe?)
 
-lang = "Turkish.conf" # There will be a dropdown menu to select this
-
-# Language select menu
+# Language selection menu
 class select_lang(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
@@ -115,17 +113,16 @@ class MainWin(QtWidgets.QMainWindow):
         self.choice_count = self.region_game_config.choice_count_spin.value()
         self.setFixedSize(640, 10+320+(60*self.choice_count))
         self.correct_ans, self.false_ans, self.solved_q_count = 0, 0, 0
-        self.draw_question(self.question_widget, self.choice_count)
+        self.region_game_qc = self.region_game_config.q_count_spin.value()
+        self.draw_question(self.question_widget, self.choice_count, self.region_game_qc)
 
-    def draw_question(self, gameObj, choice): # Generate a new question and display it
-        if self.solved_q_count == self.choice_count:
-            self.draw_end_game()
+    def draw_question(self, gameObj, choice, q_count): # Generate a new question and display it
         self.correct = random.randint(1, choice) # Decide the true answer
         # Display a random flag
-        self.flag_name = os.splitext("tr.png")[0]
+        self.correct_ans_name = random.choice(self.lang["country_list"]["list"].split(",")).lower()
         self.flag = QtGui.QPixmap()
-        test = dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__))+self.flag_name+".png"
-        self.flag.load(dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__))+"/"+self.flag_name+".png")
+        test = dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__))+self.correct_ans_name+".png"
+        self.flag.load(dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__))+"/"+self.correct_ans_name+".png")
         self.flag = self.flag.scaledToWidth(640)
         gameObj.flag_pic.setPixmap(self.flag)
         gameObj.flag_pic.setAlignment(QtCore.Qt.AlignCenter)
@@ -139,30 +136,38 @@ class MainWin(QtWidgets.QMainWindow):
         y = 340
         for i in range(1, choice+1):
             if i == self.correct:
-                locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.flag_name)
+                locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.lang["country_names"][self.correct_ans_name])
                 locals()[str(i)+"cho"].move(0, y)
-                locals()[str(i)+"cho"].choice_name.clicked.connect(self.correct_func)
+                locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.correct_func(q_count, gameObj))
             else:
-                random_choice = os.splitext(random.choice(os.listdir(dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__)))))[0]
-                locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=random_choice)
+                locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.lang["country_names"][random.choice(self.lang["country_list"]["list"].split(",")).lower()])
                 locals()[str(i)+"cho"].move(0, y)
-                locals()[str(i)+"cho"].choice_name.clicked.connect(self.false_func)
+                locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.false_func(q_count, gameObj))
             y += 60
     
-    def correct_func(self):
+    def correct_func(self, q_count, gameObj):
         self.correct_ans += 1
         self.solved_q_count += 1
         self.setCentralWidget(None)
-        del self.question_widget
-        self.question_widget = question_widget()
-        self.setCentralWidget(self.question_widget)
-        self.draw_question(self.question_widget, self.choice_count)
+        del gameObj
+        gameObj = question_widget()
+        self.setCentralWidget(gameObj)
+        self.draw_question(gameObj, self.choice_count, self.region_game_qc)
         print("test-true")
+        if self.solved_q_count == q_count:
+            self.draw_end_game()
     
-    def false_func(self):
-        self.false_ans += 1
+    def false_func(self, q_count, gameObj):
+        self.correct_ans += 1
         self.solved_q_count += 1
+        self.setCentralWidget(None)
+        del gameObj
+        gameObj = question_widget()
+        self.setCentralWidget(gameObj)
+        self.draw_question(gameObj, self.choice_count, self.region_game_qc)
         print("test-false")
+        if self.solved_q_count == q_count:
+            self.draw_end_game()
     
     def draw_end_game(self):
         print("end game")
