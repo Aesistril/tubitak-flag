@@ -13,23 +13,23 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QLabel" name="result">
+  <widget class="QLabel" name="title">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>10</y>
      <width>641</width>
-     <height>151</height>
+     <height>91</height>
     </rect>
    </property>
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
    </property>
    <property name="styleSheet">
-    <string notr="true">font: 22pt &quot;Noto Sans&quot;;</string>
+    <string notr="true">font: 25 22pt &quot;Noto Sans&quot;;</string>
    </property>
    <property name="text">
-    <string>result</string>
+    <string>title</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -39,13 +39,32 @@
    <property name="geometry">
     <rect>
      <x>270</x>
-     <y>350</y>
+     <y>390</y>
      <width>111</width>
      <height>37</height>
     </rect>
    </property>
    <property name="text">
     <string>home</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="result">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>100</y>
+     <width>641</width>
+     <height>261</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font:  12pt &quot;Noto Sans&quot;;</string>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
  </widget>

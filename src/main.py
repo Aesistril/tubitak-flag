@@ -1,9 +1,10 @@
+#!/usr/bin/python3
 from PyQt5 import QtCore, QtGui, QtWidgets, uic, QtSvg
 from configparser import ConfigParser
 class random: from random import randint, choice
 class os: 
     from os.path import dirname, splitext
-    from os import listdir
+    from os import listdir, environ
 class platform: from platform import system
 
 try:
@@ -44,6 +45,16 @@ class country_game_config(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, parent=parent)
         uic.loadUi(dirs["resources"]["qt6-ui"].replace("-filepath-", os.dirname(__file__))+'/country_game_config.ui', self)
 
+class end_game(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self, parent=parent)
+        uic.loadUi(dirs["resources"]["qt6-ui"].replace("-filepath-", os.dirname(__file__))+'/end_game.ui', self)
+
+class region_game_config(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self, parent=parent)
+        uic.loadUi(dirs["resources"]["qt6-ui"].replace("-filepath-", os.dirname(__file__))+'/region_game_config.ui', self)
+
 # Select game widget (The main menu)
 class select_game(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -80,14 +91,37 @@ class MainWin(QtWidgets.QMainWindow):
         self.select_game = select_game()
         self.select_game.sel_game_label.setText(self.lang["sel_game"]["sel_game_label"])
         self.select_game.country_game.setText(self.lang["sel_game"]["country_game"])
-        self.select_game.country_game.setText(self.lang["sel_game"]["country_game"])
+        self.select_game.region_game.setText(self.lang["sel_game"]["region_game"])
         self.select_game.country_game.clicked.connect(self.draw_country_game_config)
-        self.select_game.country_game.clicked.connect(self.draw_country_game)
+        self.select_game.region_game.clicked.connect(self.draw_region_game_config)
         self.setCentralWidget(self.select_game)
         self.setFixedSize(640, 450)
+
+    def draw_region_game_config(self):
+        # Delete the old self.region_game_config if possible
+        try: del self.region_game_config
+        except: pass
+        self.region_game_config = region_game_config()
+        self.region_game_config.choice_count_label.setText(self.lang["region_game_config"]["choice_count_label"])
+        self.region_game_config.q_count_label.setText(self.lang["region_game_config"]["q_count_label"])
+        self.region_game_config.title.setText(self.lang["region_game_config"]["title"])
+        self.region_game_config.start.setText(self.lang["region_game_config"]["start"])
+        self.region_game_config.return_main.setText(self.lang["region_game_config"]["return_main"])
+        self.setCentralWidget(self.region_game_config)
+        self.region_game_config.return_main.clicked.connect(self.draw_select_game)
+        self.region_game_config.start.clicked.connect(self.run_region_game)
     
-    def draw_country_game(self):
-        pass
+    def run_region_game(self):
+        try: del self.region_game, self.question_widget
+        except: pass
+        self.question_widget = question_widget()
+        self.question_widget.tf.setText(self.lang["question"]["tf_format"].replace("-correct-", str(0)).replace("-false-", str(0)))
+        self.setCentralWidget(self.question_widget)
+        self.choice_count = self.region_game_config.choice_count_spin.value()
+        self.setFixedSize(640, 40+320+(60*self.choice_count))
+        self.correct_ans, self.false_ans, self.solved_q_count = 0, 0, 0
+        self.region_game_qc = self.region_game_config.q_count_spin.value()
+        self.draw_question(self.question_widget, self.choice_count, self.region_game_qc, self.lang["region_list"]["list"].split(","), mode="region")
 
     def draw_country_game_config(self):
         # Delete the old self.country_game_config if possible
@@ -100,8 +134,6 @@ class MainWin(QtWidgets.QMainWindow):
         self.country_game_config.start.setText(self.lang["country_game_config"]["start"])
         self.country_game_config.return_main.setText(self.lang["country_game_config"]["return_main"])
         self.setCentralWidget(self.country_game_config)
-        
-
         self.country_game_config.return_main.clicked.connect(self.draw_select_game)
         self.country_game_config.start.clicked.connect(self.run_country_game)
     
@@ -109,19 +141,21 @@ class MainWin(QtWidgets.QMainWindow):
         try: del self.country_game, self.question_widget
         except: pass
         self.question_widget = question_widget()
+        self.question_widget.tf.setText(self.lang["question"]["tf_format"].replace("-correct-", str(0)).replace("-false-", str(0)))
         self.setCentralWidget(self.question_widget)
         self.choice_count = self.country_game_config.choice_count_spin.value()
-        self.setFixedSize(640, 10+320+(60*self.choice_count))
+        self.setFixedSize(640, 60+320+(60*self.choice_count))
         self.correct_ans, self.false_ans, self.solved_q_count = 0, 0, 0
         self.country_game_qc = self.country_game_config.q_count_spin.value()
-        self.draw_question(self.question_widget, self.choice_count, self.country_game_qc)
+        self.draw_question(self.question_widget, self.choice_count, self.country_game_qc, self.lang["country_list"]["list"].split(","), mode="country")
 
-    def draw_question(self, gameObj, choice, q_count): # Generate a new question and display it
-        self.correct = random.randint(1, choice) # Decide the true answer
-        # Display a random flag
+    def draw_question(self, gameObj, choice, q_count, choice_list, mode): # Generate a new question and display it
+        self.correct = random.randint(1, choice) # Decide the correct answer
         self.correct_ans_name = random.choice(self.lang["country_list"]["list"].split(",")).lower()
+        # Display a random flag
         self.flag = QtGui.QPixmap()
-        test = dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__))+self.correct_ans_name+".png"
+        # debug_flag_test = ""
+        # self.flag.load(debug_flag_test)
         self.flag.load(dirs["resources"]["flags"].replace("-filepath-", os.dirname(__file__))+"/"+self.correct_ans_name+".png")
         self.flag = self.flag.scaledToWidth(640)
         gameObj.flag_pic.setPixmap(self.flag)
@@ -132,51 +166,91 @@ class MainWin(QtWidgets.QMainWindow):
                 locals()[str(i)+"cho"].setParent(None)
                 del locals()[str(i)+"cho"]
         except: pass
+        if mode == "country":
         # Draw and connect the choice buttons
-        y = 340
-        for i in range(1, choice+1):
-            if i == self.correct:
-                locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.lang["country_names"][self.correct_ans_name])
-                locals()[str(i)+"cho"].move(0, y)
-                locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.correct_func(q_count, gameObj))
-            else:
-                locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.lang["country_names"][random.choice(self.lang["country_list"]["list"].split(",")).lower()])
-                locals()[str(i)+"cho"].move(0, y)
-                locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.false_func(q_count, gameObj))
-            y += 60
+            y = 380
+            for i in range(1, choice+1):
+                if i == self.correct:
+                    locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.lang["country_names"][self.correct_ans_name])
+                    locals()[str(i)+"cho"].move(0, y)
+                    locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.correct_func(q_count, gameObj, mode))
+                else:
+                    locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.lang["country_names"][random.choice(choice_list).lower()])
+                    locals()[str(i)+"cho"].move(0, y)
+                    locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.false_func(q_count, gameObj, mode))
+                y += 60
+        elif mode == "region":
+            y = 380
+            choosed_regions = [] # Don't choose the same region twice
+            # Pick another country if first one does not exist
+            while True:
+                try:
+                    correct_region = self.lang["regions"][self.correct_ans_name] # Find the correct answer
+                except:
+                    self.correct_ans_name = random.choice(self.lang["country_list"]["list"].split(",")).lower() # Choose another country
+                else: 
+                    break
+            choosed_regions.append(correct_region)
+            for i in range(1, choice+1):
+                if i == self.correct:
+                    locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=correct_region)
+                    locals()[str(i)+"cho"].move(0, y)
+                    locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.correct_func(q_count, gameObj, mode))
+                else:
+                    while True:
+                        rand_region = random.choice(choice_list)
+                        if rand_region not in choosed_regions:
+                            choosed_regions.append(rand_region)
+                            break
+                    locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=rand_region)
+                    locals()[str(i)+"cho"].move(0, y)
+                    locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.false_func(q_count, gameObj, mode))
+                y += 60
     
-    def correct_func(self, q_count, gameObj):
+    def correct_func(self, q_count, gameObj, mode):
         self.correct_ans += 1
         self.solved_q_count += 1
         self.setCentralWidget(None)
         del gameObj
         gameObj = question_widget()
         self.setCentralWidget(gameObj)
-        self.draw_question(gameObj, self.choice_count, self.country_game_qc)
-        print("test-true")
+        gameObj.tf.setText(self.lang["question"]["tf_format"].replace("-correct-", str(self.correct_ans)).replace("-false-", str(self.false_ans)))
+        if mode == "country":
+            self.draw_question(gameObj, self.choice_count, q_count, self.lang["country_list"]["list"].split(","), mode)
+        elif mode == "region":
+            self.draw_question(gameObj, self.choice_count, self.region_game_qc, self.lang["region_list"]["list"].split(","), mode)
         if self.solved_q_count == q_count:
             self.draw_end_game()
     
-    def false_func(self, q_count, gameObj):
-        self.correct_ans += 1
+    def false_func(self, q_count, gameObj, mode):
+        self.false_ans += 1
         self.solved_q_count += 1
         self.setCentralWidget(None)
         del gameObj
         gameObj = question_widget()
         self.setCentralWidget(gameObj)
-        self.draw_question(gameObj, self.choice_count, self.country_game_qc)
-        print("test-false")
+        gameObj.tf.setText(self.lang["question"]["tf_format"].replace("-correct-", str(self.correct_ans)).replace("-false-", str(self.false_ans)))
+        if mode == "country":
+            self.draw_question(gameObj, self.choice_count, q_count, self.lang["country_list"]["list"].split(","), mode)
+        elif mode == "region":
+            self.draw_question(gameObj, self.choice_count, self.region_game_qc, self.lang["region_list"]["list"].split(","), mode)
         if self.solved_q_count == q_count:
             self.draw_end_game()
     
     def draw_end_game(self):
-        print("end game")
-        
+        end_game_widget = end_game()
+        end_game_widget.title.setText(self.lang["end_game"]["title"])
+        end_game_widget.result.setText(self.lang["end_game"]["result_format"].replace("-correct-", str(self.correct_ans)).replace("-false-", str(self.false_ans)))
+        end_game_widget.home.setText(self.lang["end_game"]["return"])
+        end_game_widget.home.clicked.connect(self.draw_select_game)
+        self.setCentralWidget(end_game_widget)
             
 
 # Start the application
 if __name__ == '__main__':
     class sys: from sys import argv, exit
+    os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+    app = QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     app = QtWidgets.QApplication(sys.argv)
     window = MainWin()
     window.show()
