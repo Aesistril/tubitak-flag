@@ -32,7 +32,7 @@
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="region_game">
+  <widget class="QPushButton" name="country_game">
    <property name="geometry">
     <rect>
      <x>130</x>
@@ -42,10 +42,10 @@
     </rect>
    </property>
    <property name="text">
-    <string>region_game</string>
+    <string>country_game</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="country_game">
+  <widget class="QPushButton" name="region_game">
    <property name="geometry">
     <rect>
      <x>380</x>
@@ -55,7 +55,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>country_game</string>
+    <string>region_game</string>
    </property>
   </widget>
  </widget>
