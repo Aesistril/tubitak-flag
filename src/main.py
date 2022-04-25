@@ -6,6 +6,8 @@ class os:
     from os.path import dirname, splitext
     from os import listdir, environ
 class platform: from platform import system
+from playsound import playsound
+from threading import Thread
 
 try:
     f = open(os.dirname(__file__)+"/chksrc")
@@ -168,6 +170,8 @@ class MainWin(QtWidgets.QMainWindow):
         except: pass
         if mode == "country":
         # Draw and connect the choice buttons
+            choosed_countries = [] # Prevent duplicate answers
+            choosed_countries.append(self.correct_ans_name)
             y = 380
             for i in range(1, choice+1):
                 if i == self.correct:
@@ -175,7 +179,12 @@ class MainWin(QtWidgets.QMainWindow):
                     locals()[str(i)+"cho"].move(0, y)
                     locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.correct_func(q_count, gameObj, mode))
                 else:
-                    locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.lang["country_names"][random.choice(choice_list).lower()])
+                    while True:
+                        rand_country = random.choice(choice_list).lower()
+                        if rand_country not in choosed_countries:
+                            choosed_countries.append(rand_country)
+                            break
+                    locals()[str(i)+"cho"] = choice_widget(parent=gameObj, text=self.lang["country_names"][rand_country])
                     locals()[str(i)+"cho"].move(0, y)
                     locals()[str(i)+"cho"].choice_name.clicked.connect(lambda: self.false_func(q_count, gameObj, mode))
                 y += 60
@@ -208,6 +217,8 @@ class MainWin(QtWidgets.QMainWindow):
                 y += 60
     
     def correct_func(self, q_count, gameObj, mode):
+        sound_thread = Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/correct.m4a"))
+        sound_thread.start()
         self.correct_ans += 1
         self.solved_q_count += 1
         self.setCentralWidget(None)
@@ -223,6 +234,8 @@ class MainWin(QtWidgets.QMainWindow):
             self.draw_end_game()
     
     def false_func(self, q_count, gameObj, mode):
+        sound_thread = Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/wrong.m4a"))
+        sound_thread.start()
         self.false_ans += 1
         self.solved_q_count += 1
         self.setCentralWidget(None)
@@ -238,6 +251,8 @@ class MainWin(QtWidgets.QMainWindow):
             self.draw_end_game()
     
     def draw_end_game(self):
+        sound_thread = Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/clap.m4a"))
+        sound_thread.start()
         end_game_widget = end_game()
         end_game_widget.title.setText(self.lang["end_game"]["title"])
         end_game_widget.result.setText(self.lang["end_game"]["result_format"].replace("-correct-", str(self.correct_ans)).replace("-false-", str(self.false_ans)))
