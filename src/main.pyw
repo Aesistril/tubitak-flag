@@ -265,8 +265,12 @@ class MainWin(QtWidgets.QMainWindow):
 if __name__ == '__main__':
     class sys: from sys import argv, exit
     os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+    # Set the stylesheet of the application
     app = QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     app = QtWidgets.QApplication(sys.argv)
+    with open(dirs["resources"]["style"].replace("-filepath-", os.dirname(__file__))+"/material.qss", 'r') as f:
+        style = f.read()
+        app.setStyleSheet(style)
     window = MainWin()
     window.show()
     sys.exit(app.exec())
