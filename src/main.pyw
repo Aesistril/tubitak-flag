@@ -80,7 +80,7 @@ class MainWin(QtWidgets.QMainWindow):
     def changeLang(self):
         self.lang = ConfigParser()
         # Read the comboBox and read the config file of language user has selected
-        self.lang.read(dirs["resources"]["lang"].replace("-filepath-", os.dirname(__file__)) + "/" + self.select_lang.comboBox.currentText() + ".conf")
+        self.lang.read(dirs["resources"]["lang"].replace("-filepath-", os.dirname(__file__)) + "/" + self.select_lang.comboBox.currentText() + ".conf", encoding="utf-8")
         del self.select_lang
         self.setWindowTitle(self.lang["misc"]["window_title"]) # Change the window title
         self.draw_select_game()
@@ -251,8 +251,7 @@ class MainWin(QtWidgets.QMainWindow):
             self.draw_end_game()
     
     def draw_end_game(self):
-        sound_thread = Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/clap.m4a"))
-        sound_thread.start()
+        Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/clap.m4a")).start()
         end_game_widget = end_game()
         end_game_widget.title.setText(self.lang["end_game"]["title"])
         end_game_widget.result.setText(self.lang["end_game"]["result_format"].replace("-correct-", str(self.correct_ans)).replace("-false-", str(self.false_ans)))
