@@ -217,7 +217,7 @@ class MainWin(QtWidgets.QMainWindow):
                 y += 60
     
     def correct_func(self, q_count, gameObj, mode):
-        sound_thread = Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/correct.m4a"))
+        sound_thread = Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/correct.wav"))
         sound_thread.start()
         self.correct_ans += 1
         self.solved_q_count += 1
@@ -234,7 +234,7 @@ class MainWin(QtWidgets.QMainWindow):
             self.draw_end_game()
     
     def false_func(self, q_count, gameObj, mode):
-        sound_thread = Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/wrong.m4a"))
+        sound_thread = Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/wrong.wav"))
         sound_thread.start()
         self.false_ans += 1
         self.solved_q_count += 1
@@ -251,9 +251,13 @@ class MainWin(QtWidgets.QMainWindow):
             self.draw_end_game()
     
     def draw_end_game(self):
-        Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/clap.m4a")).start()
         end_game_widget = end_game()
-        end_game_widget.title.setText(self.lang["end_game"]["title"])
+        if self.correct_ans >= self.false_ans:
+            Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/clap.wav")).start()
+            end_game_widget.title.setText(self.lang["end_game"]["title_win"])
+        elif self.correct_ans < self.false_ans:
+            Thread(target=lambda: playsound(sound=dirs["resources"]["sounds"].replace("-filepath-", os.dirname(__file__))+"/fail.wav")).start()
+            end_game_widget.title.setText(self.lang["end_game"]["title_fail"])
         end_game_widget.result.setText(self.lang["end_game"]["result_format"].replace("-correct-", str(self.correct_ans)).replace("-false-", str(self.false_ans)))
         end_game_widget.home.setText(self.lang["end_game"]["return"])
         end_game_widget.home.clicked.connect(self.draw_select_game)
